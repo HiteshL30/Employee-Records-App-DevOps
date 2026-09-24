@@ -1,0 +1,23 @@
+services:
+  backend:
+    build:
+      context: ./mern/server
+      dockerfile: Dockerfile
+    container_name: employee-backend
+    environment:
+      PORT: 5050
+      ATLAS_URI: ${ATLAS_URI}
+    ports:
+      - "5050:5050"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./mern/client
+      dockerfile: Dockerfile
+    container_name: employee-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
