@@ -1,0 +1,10 @@
+node_modules/
+
+# Environment / secrets
+.env
+.env.*
+config.env
+
+# Keep example configuration files
+!.env.example
+!config.env.example
