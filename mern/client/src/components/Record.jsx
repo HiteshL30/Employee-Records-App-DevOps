@@ -18,6 +18,7 @@ export default function Record() {
 
   const [form, setForm] = useState(emptyForm);
   const [isNew, setIsNew] = useState(true);
+
   const params = useParams();
   const navigate = useNavigate();
 
@@ -46,6 +47,7 @@ export default function Record() {
       if (!response.ok) {
         const message =
           "An error has occurred: " + response.statusText;
+
         console.error(message);
         return;
       }
@@ -121,336 +123,492 @@ export default function Record() {
   }
 
   return (
-    <>
-      <h3 className="text-lg font-semibold p-4">
-        Create/Update Employee Record
-      </h3>
+    <main className="min-h-screen bg-slate-100 px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl">
 
-      <form
-        onSubmit={onSubmit}
-        className="border rounded-lg overflow-hidden p-4"
-      >
-        <div className="grid grid-cols-1 gap-x-8 gap-y-10 border-b border-slate-900/10 pb-12 md:grid-cols-2">
-
+        {/* Header */}
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-base font-semibold leading-7 text-slate-900">
-              Employee Info
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-900 text-lg font-bold text-white shadow-sm">
+                E
+              </div>
+
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+                  Employee Records
+                </h1>
+
+                <p className="text-sm text-slate-500">
+                  Manage employee information
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => navigate("/")}
+            className="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+          >
+            ← Back to Employees
+          </button>
+        </div>
+
+        {/* Main Card */}
+        <form
+          onSubmit={onSubmit}
+          className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl shadow-slate-200/50"
+        >
+
+          {/* Form Header */}
+          <div className="border-b border-slate-200 bg-gradient-to-r from-slate-900 to-slate-800 px-6 py-7 text-white sm:px-8">
+            <p className="text-sm font-medium text-slate-300">
+              {isNew ? "NEW EMPLOYEE" : "EDIT EMPLOYEE"}
+            </p>
+
+            <h2 className="mt-1 text-2xl font-bold">
+              {isNew
+                ? "Create Employee Record"
+                : "Update Employee Record"}
             </h2>
 
-            <p className="mt-1 text-sm leading-6 text-slate-600">
-              Enter employee information including role, employment
-              type, salary, dates and current status.
+            <p className="mt-2 max-w-2xl text-sm text-slate-300">
+              Enter accurate employee information to keep your
+              organization's records up to date.
             </p>
           </div>
 
-          <div className="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8">
+          {/* Form Content */}
+          <div className="space-y-10 p-6 sm:p-8">
 
-            <div className="sm:col-span-4">
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium leading-6 text-slate-900"
-              >
-                Name
-              </label>
-
-              <div className="mt-2">
-                <input
-                  type="text"
-                  name="name"
-                  id="name"
-                  required
-                  className="block w-full rounded-md border-0 py-1.5 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
-                  placeholder="First Last"
-                  value={form.name}
-                  onChange={(e) =>
-                    updateForm({ name: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="sm:col-span-4">
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium leading-6 text-slate-900"
-              >
-                Email
-              </label>
-
-              <div className="mt-2">
-                <input
-                  type="email"
-                  name="email"
-                  id="email"
-                  required
-                  className="block w-full rounded-md border-0 py-1.5 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
-                  placeholder="employee@example.com"
-                  value={form.email}
-                  onChange={(e) =>
-                    updateForm({ email: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="sm:col-span-4">
-              <label
-                htmlFor="position"
-                className="block text-sm font-medium leading-6 text-slate-900"
-              >
-                Position
-              </label>
-
-              <div className="mt-2">
-                <input
-                  type="text"
-                  name="position"
-                  id="position"
-                  required
-                  className="block w-full rounded-md border-0 py-1.5 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
-                  placeholder="Software Engineer"
-                  value={form.position}
-                  onChange={(e) =>
-                    updateForm({ position: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-
-            <div>
-              <fieldset>
-                <legend className="block text-sm font-medium leading-6 text-slate-900">
-                  Level
-                </legend>
-
-                <div className="mt-3 flex items-center gap-6">
-                  {["Intern", "Junior", "Senior"].map((level) => (
-                    <label
-                      key={level}
-                      className="flex items-center cursor-pointer"
-                    >
-                      <input
-                        type="radio"
-                        name="level"
-                        value={level}
-                        checked={form.level === level}
-                        onChange={(e) =>
-                          updateForm({ level: e.target.value })
-                        }
-                        required
-                        className="h-4 w-4 border-slate-300 text-slate-600 focus:ring-slate-600"
-                      />
-
-                      <span className="ml-2 text-sm font-medium text-slate-900">
-                        {level}
-                      </span>
-                    </label>
-                  ))}
+            {/* PERSONAL INFORMATION */}
+            <section>
+              <div className="mb-5 flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-sm font-bold text-slate-700">
+                  01
                 </div>
-              </fieldset>
-            </div>
 
-            <div>
-              <label
-                htmlFor="department"
-                className="block text-sm font-medium leading-6 text-slate-900"
-              >
-                Department
-              </label>
+                <div>
+                  <h3 className="font-semibold text-slate-900">
+                    Personal Information
+                  </h3>
 
-              <div className="mt-2">
-                <select
-                  id="department"
-                  name="department"
-                  required
-                  className="block w-full rounded-md border-0 py-1.5 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm"
-                  value={form.department}
-                  onChange={(e) =>
-                    updateForm({ department: e.target.value })
-                  }
-                >
-                  <option value="">Select department</option>
-                  <option value="Engineering">Engineering</option>
-                  <option value="DevOps">DevOps</option>
-                  <option value="HR">HR</option>
-                  <option value="Finance">Finance</option>
-                  <option value="Marketing">Marketing</option>
-                  <option value="Sales">Sales</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label
-                htmlFor="employeeType"
-                className="block text-sm font-medium leading-6 text-slate-900"
-              >
-                Employee Type
-              </label>
-
-              <div className="mt-2">
-                <select
-                  id="employeeType"
-                  name="employeeType"
-                  required
-                  className="block w-full rounded-md border-0 py-1.5 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm"
-                  value={form.employeeType}
-                  onChange={(e) =>
-                    updateForm({ employeeType: e.target.value })
-                  }
-                >
-                  <option value="">Select employee type</option>
-                  <option value="Full-time">Full-time</option>
-                  <option value="Part-time">Part-time</option>
-                  <option value="Intern">Intern</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label
-                htmlFor="salary"
-                className="block text-sm font-medium leading-6 text-slate-900"
-              >
-                Annual Salary / Stipend
-              </label>
-
-              <div className="mt-2">
-                <input
-                  type="number"
-                  name="salary"
-                  id="salary"
-                  min="0"
-                  required
-                  className="block w-full rounded-md border-0 py-1.5 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
-                  placeholder="650000"
-                  value={form.salary}
-                  onChange={(e) =>
-                    updateForm({
-                      salary:
-                        e.target.value === ""
-                          ? ""
-                          : Number(e.target.value),
-                    })
-                  }
-                />
+                  <p className="text-xs text-slate-500">
+                    Basic employee details
+                  </p>
+                </div>
               </div>
 
-              <p className="mt-1 text-xs text-slate-500">
-                Enter annual salary for employees or stipend for interns.
-              </p>
-            </div>
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
 
-            <div>
-              <label
-                htmlFor="joiningDate"
-                className="block text-sm font-medium leading-6 text-slate-900"
-              >
-                Joining Date
-              </label>
+                {/* Name */}
+                <div>
+                  <label
+                    htmlFor="name"
+                    className="block text-sm font-semibold text-slate-800"
+                  >
+                    Full Name
+                  </label>
 
-              <div className="mt-2">
-                <input
-                  type="date"
-                  name="joiningDate"
-                  id="joiningDate"
-                  required
-                  className="block w-full rounded-md border-0 py-1.5 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
-                  value={form.joiningDate}
-                  onChange={(e) =>
-                    updateForm({ joiningDate: e.target.value })
-                  }
-                />
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    required
+                    placeholder="Priya Patil"
+                    value={form.name}
+                    onChange={(e) =>
+                      updateForm({ name: e.target.value })
+                    }
+                    className="mt-2 block w-full rounded-lg border-0 bg-slate-50 px-3 py-2.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-inset focus:ring-slate-900 sm:text-sm"
+                  />
+                </div>
+
+                {/* Email */}
+                <div>
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-semibold text-slate-800"
+                  >
+                    Email Address
+                  </label>
+
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    required
+                    placeholder="priya@example.com"
+                    value={form.email}
+                    onChange={(e) =>
+                      updateForm({ email: e.target.value })
+                    }
+                    className="mt-2 block w-full rounded-lg border-0 bg-slate-50 px-3 py-2.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-inset focus:ring-slate-900 sm:text-sm"
+                  />
+                </div>
+
+                {/* Position */}
+                <div>
+                  <label
+                    htmlFor="position"
+                    className="block text-sm font-semibold text-slate-800"
+                  >
+                    Position
+                  </label>
+
+                  <input
+                    type="text"
+                    id="position"
+                    name="position"
+                    required
+                    placeholder="Software Engineer"
+                    value={form.position}
+                    onChange={(e) =>
+                      updateForm({ position: e.target.value })
+                    }
+                    className="mt-2 block w-full rounded-lg border-0 bg-slate-50 px-3 py-2.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-inset focus:ring-slate-900 sm:text-sm"
+                  />
+                </div>
+
+                {/* Location */}
+                <div>
+                  <label
+                    htmlFor="location"
+                    className="block text-sm font-semibold text-slate-800"
+                  >
+                    Location
+                  </label>
+
+                  <input
+                    type="text"
+                    id="location"
+                    name="location"
+                    required
+                    placeholder="Pune"
+                    value={form.location}
+                    onChange={(e) =>
+                      updateForm({ location: e.target.value })
+                    }
+                    className="mt-2 block w-full rounded-lg border-0 bg-slate-50 px-3 py-2.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-inset focus:ring-slate-900 sm:text-sm"
+                  />
+                </div>
               </div>
-            </div>
+            </section>
 
-            <div>
-              <label
-                htmlFor="endingDate"
-                className="block text-sm font-medium leading-6 text-slate-900"
-              >
-                Ending Date
-              </label>
+            {/* EMPLOYMENT INFORMATION */}
+            <section className="border-t border-slate-200 pt-10">
+              <div className="mb-5 flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-sm font-bold text-slate-700">
+                  02
+                </div>
 
-              <div className="mt-2">
-                <input
-                  type="date"
-                  name="endingDate"
-                  id="endingDate"
-                  className="block w-full rounded-md border-0 py-1.5 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
-                  value={form.endingDate}
-                  onChange={(e) =>
-                    updateForm({ endingDate: e.target.value })
-                  }
-                />
+                <div>
+                  <h3 className="font-semibold text-slate-900">
+                    Employment Information
+                  </h3>
+
+                  <p className="text-xs text-slate-500">
+                    Role and employment classification
+                  </p>
+                </div>
               </div>
 
-              <p className="mt-1 text-xs text-slate-500">
-                Leave empty if the employee is currently active.
-              </p>
-            </div>
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
 
-            <div>
-              <label
-                htmlFor="status"
-                className="block text-sm font-medium leading-6 text-slate-900"
-              >
-                Status
-              </label>
+                {/* Level */}
+                <div className="md:col-span-2">
+                  <fieldset>
+                    <legend className="block text-sm font-semibold text-slate-800">
+                      Level
+                    </legend>
 
-              <div className="mt-2">
-                <select
-                  id="status"
-                  name="status"
-                  required
-                  className="block w-full rounded-md border-0 py-1.5 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm"
-                  value={form.status}
-                  onChange={(e) =>
-                    updateForm({ status: e.target.value })
-                  }
-                >
-                  <option value="">Select status</option>
-                  <option value="Active">Active</option>
-                  <option value="On Leave">On Leave</option>
-                  <option value="Completed">Completed</option>
-                  <option value="Resigned">Resigned</option>
-                </select>
+                    <div className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                      {["Intern", "Junior", "Senior"].map((level) => (
+                        <label
+                          key={level}
+                          className={`flex cursor-pointer items-center justify-center rounded-lg border px-4 py-3 text-sm font-semibold transition ${
+                            form.level === level
+                              ? "border-slate-900 bg-slate-900 text-white shadow-sm"
+                              : "border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50"
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="level"
+                            value={level}
+                            checked={form.level === level}
+                            onChange={(e) =>
+                              updateForm({
+                                level: e.target.value,
+                              })
+                            }
+                            required
+                            className="sr-only"
+                          />
+
+                          {level}
+                        </label>
+                      ))}
+                    </div>
+                  </fieldset>
+                </div>
+
+                {/* Department */}
+                <div>
+                  <label
+                    htmlFor="department"
+                    className="block text-sm font-semibold text-slate-800"
+                  >
+                    Department
+                  </label>
+
+                  <select
+                    id="department"
+                    name="department"
+                    required
+                    value={form.department}
+                    onChange={(e) =>
+                      updateForm({
+                        department: e.target.value,
+                      })
+                    }
+                    className="mt-2 block w-full rounded-lg border-0 bg-slate-50 px-3 py-2.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:bg-white focus:ring-2 focus:ring-inset focus:ring-slate-900 sm:text-sm"
+                  >
+                    <option value="">
+                      Select department
+                    </option>
+                    <option value="Engineering">
+                      Engineering
+                    </option>
+                    <option value="DevOps">DevOps</option>
+                    <option value="HR">HR</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Marketing">
+                      Marketing
+                    </option>
+                    <option value="Sales">Sales</option>
+                  </select>
+                </div>
+
+                {/* Employee Type */}
+                <div>
+                  <label
+                    htmlFor="employeeType"
+                    className="block text-sm font-semibold text-slate-800"
+                  >
+                    Employee Type
+                  </label>
+
+                  <select
+                    id="employeeType"
+                    name="employeeType"
+                    required
+                    value={form.employeeType}
+                    onChange={(e) =>
+                      updateForm({
+                        employeeType: e.target.value,
+                      })
+                    }
+                    className="mt-2 block w-full rounded-lg border-0 bg-slate-50 px-3 py-2.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:bg-white focus:ring-2 focus:ring-inset focus:ring-slate-900 sm:text-sm"
+                  >
+                    <option value="">
+                      Select employee type
+                    </option>
+                    <option value="Full-time">
+                      Full-time
+                    </option>
+                    <option value="Part-time">
+                      Part-time
+                    </option>
+                    <option value="Intern">Intern</option>
+                  </select>
+                </div>
+
+                {/* Status */}
+                <div className="md:col-span-2">
+                  <label
+                    htmlFor="status"
+                    className="block text-sm font-semibold text-slate-800"
+                  >
+                    Employment Status
+                  </label>
+
+                  <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                    {[
+                      "Active",
+                      "On Leave",
+                      "Completed",
+                      "Resigned",
+                    ].map((status) => (
+                      <label
+                        key={status}
+                        className={`cursor-pointer rounded-lg border px-3 py-3 text-center text-sm font-semibold transition ${
+                          form.status === status
+                            ? "border-slate-900 bg-slate-900 text-white shadow-sm"
+                            : "border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="status"
+                          value={status}
+                          checked={form.status === status}
+                          onChange={(e) =>
+                            updateForm({
+                              status: e.target.value,
+                            })
+                          }
+                          required
+                          className="sr-only"
+                        />
+
+                        {status}
+                      </label>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
+            </section>
 
-            <div>
-              <label
-                htmlFor="location"
-                className="block text-sm font-medium leading-6 text-slate-900"
-              >
-                Location
-              </label>
+            {/* COMPENSATION AND DATES */}
+            <section className="border-t border-slate-200 pt-10">
+              <div className="mb-5 flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-sm font-bold text-slate-700">
+                  03
+                </div>
 
-              <div className="mt-2">
-                <input
-                  type="text"
-                  name="location"
-                  id="location"
-                  required
-                  className="block w-full rounded-md border-0 py-1.5 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm"
-                  placeholder="Pune"
-                  value={form.location}
-                  onChange={(e) =>
-                    updateForm({ location: e.target.value })
-                  }
-                />
+                <div>
+                  <h3 className="font-semibold text-slate-900">
+                    Compensation & Dates
+                  </h3>
+
+                  <p className="text-xs text-slate-500">
+                    Salary and employment timeline
+                  </p>
+                </div>
               </div>
-            </div>
 
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+
+                {/* Salary */}
+                <div>
+                  <label
+                    htmlFor="salary"
+                    className="block text-sm font-semibold text-slate-800"
+                  >
+                    Annual Salary / Stipend
+                  </label>
+
+                  <div className="relative mt-2">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-500">
+                      ₹
+                    </span>
+
+                    <input
+                      type="number"
+                      id="salary"
+                      name="salary"
+                      min="0"
+                      required
+                      placeholder="650000"
+                      value={form.salary}
+                      onChange={(e) =>
+                        updateForm({
+                          salary:
+                            e.target.value === ""
+                              ? ""
+                              : Number(e.target.value),
+                        })
+                      }
+                      className="block w-full rounded-lg border-0 bg-slate-50 py-2.5 pl-8 pr-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-inset focus:ring-slate-900 sm:text-sm"
+                    />
+                  </div>
+
+                  <p className="mt-1.5 text-xs text-slate-500">
+                    Enter annual salary or stipend.
+                  </p>
+                </div>
+
+                {/* Joining Date */}
+                <div>
+                  <label
+                    htmlFor="joiningDate"
+                    className="block text-sm font-semibold text-slate-800"
+                  >
+                    Joining Date
+                  </label>
+
+                  <input
+                    type="date"
+                    id="joiningDate"
+                    name="joiningDate"
+                    required
+                    value={form.joiningDate}
+                    onChange={(e) =>
+                      updateForm({
+                        joiningDate: e.target.value,
+                      })
+                    }
+                    className="mt-2 block w-full rounded-lg border-0 bg-slate-50 px-3 py-2.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:bg-white focus:ring-2 focus:ring-inset focus:ring-slate-900 sm:text-sm"
+                  />
+                </div>
+
+                {/* Ending Date */}
+                <div>
+                  <label
+                    htmlFor="endingDate"
+                    className="block text-sm font-semibold text-slate-800"
+                  >
+                    Ending Date
+                  </label>
+
+                  <input
+                    type="date"
+                    id="endingDate"
+                    name="endingDate"
+                    value={form.endingDate}
+                    onChange={(e) =>
+                      updateForm({
+                        endingDate: e.target.value,
+                      })
+                    }
+                    className="mt-2 block w-full rounded-lg border-0 bg-slate-50 px-3 py-2.5 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:bg-white focus:ring-2 focus:ring-inset focus:ring-slate-900 sm:text-sm"
+                  />
+
+                  <p className="mt-1.5 text-xs text-slate-500">
+                    Leave empty for active employees.
+                  </p>
+                </div>
+              </div>
+            </section>
           </div>
-        </div>
 
-        <input
-          type="submit"
-          value="Save Employee Record"
-          className="inline-flex items-center justify-center whitespace-nowrap text-md font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-slate-100 hover:text-accent-foreground h-9 rounded-md px-3 cursor-pointer mt-4"
-        />
-      </form>
-    </>
+          {/* Footer */}
+          <div className="flex flex-col-reverse gap-3 border-t border-slate-200 bg-slate-50 px-6 py-5 sm:flex-row sm:justify-end sm:px-8">
+            <button
+              type="button"
+              onClick={() => navigate("/")}
+              className="rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              className="rounded-lg bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2"
+            >
+              {isNew
+                ? "Save Employee Record"
+                : "Update Employee Record"}
+            </button>
+          </div>
+        </form>
+
+        <p className="mt-6 text-center text-xs text-slate-500">
+          EmployeeHub · Employee Records Management
+        </p>
+      </div>
+    </main>
   );
 }
