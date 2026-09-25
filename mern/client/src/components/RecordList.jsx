@@ -1,119 +1,317 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import StatCard from "./StatCard";
+import SearchBar from "./SearchBar";
+import EmptyState from "./EmptyState";
 
 function displayLevel(level) {
-  if (!level) return "";
+  if (!level) return "Unknown";
+
   const normalized = level.toString().trim().toLowerCase();
+
   if (normalized === "intern") return "Intern";
   if (normalized === "junior") return "Junior";
   if (normalized === "senior") return "Senior";
+
   return level;
 }
 
-const Record = (props) => (
-  <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-    <td className="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0">
-      {props.record.name}
-    </td>
-    <td className="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0">
-      {props.record.position}
-    </td>
-    <td className="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0">
-      {displayLevel(props.record.level)}
-    </td>
-    <td className="p-4 align-middle [&amp;:has([role=checkbox])]:pr-0">
-      <div className="flex gap-2">
-        <Link
-          className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-slate-100 h-9 rounded-md px-3"
-          to={`/edit/${props.record._id}`}
-        >
-          Edit
-        </Link>
-        <button
-          className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-slate-100 hover:text-accent-foreground h-9 rounded-md px-3"
-          color="red"
-          type="button"
-          onClick={() => {
-            props.deleteRecord(props.record._id);
-          }}
-        >
-          Delete
-        </button>
-      </div>
-    </td>
-  </tr>
-);
+function LevelBadge({ level }) {
+  const normalized = displayLevel(level);
+
+  const styles = {
+    Intern: "bg-blue-50 text-blue-700 ring-blue-600/20",
+    Junior: "bg-amber-50 text-amber-700 ring-amber-600/20",
+    Senior: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+  };
+
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${
+        styles[normalized] || "bg-slate-50 text-slate-600 ring-slate-500/20"
+      }`}
+    >
+      {normalized}
+    </span>
+  );
+}
+
+function EmployeeRow({ record, deleteRecord }) {
+  return (
+    <tr className="border-b border-slate-100 transition hover:bg-slate-50/70 last:border-0">
+      <td className="px-6 py-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-900 text-sm font-bold text-white">
+            {record.name?.charAt(0)?.toUpperCase() || "?"}
+          </div>
+
+          <div>
+            <p className="font-semibold text-slate-900">
+              {record.name}
+            </p>
+
+            <p className="text-xs text-slate-500">
+              Employee record
+            </p>
+          </div>
+        </div>
+      </td>
+
+      <td className="px-6 py-4 text-sm text-slate-600">
+        {record.position}
+      </td>
+
+      <td className="px-6 py-4">
+        <LevelBadge level={record.level} />
+      </td>
+
+      <td className="px-6 py-4">
+        <div className="flex items-center gap-2">
+          <Link
+            to={`/edit/${record._id}`}
+            className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
+          >
+            Edit
+          </Link>
+
+          <button
+            type="button"
+            onClick={() => deleteRecord(record._id)}
+            className="rounded-lg border border-red-100 bg-white px-3 py-2 text-xs font-semibold text-red-600 transition hover:bg-red-50"
+          >
+            Delete
+          </button>
+        </div>
+      </td>
+    </tr>
+  );
+}
 
 export default function RecordList() {
   const [records, setRecords] = useState([]);
+  const [search, setSearch] = useState("");
+  const [levelFilter, setLevelFilter] = useState("All");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  // This method fetches the records from the database.
   useEffect(() => {
     async function getRecords() {
-      const response = await fetch(`/record/`);
-      if (!response.ok) {
-        const message = `An error occurred: ${response.statusText}`;
-        console.error(message);
-        return;
+      try {
+        setLoading(true);
+        setError("");
+
+        const response = await fetch("/record/");
+
+        if (!response.ok) {
+          throw new Error(`Unable to load employees (${response.status})`);
+        }
+
+        const data = await response.json();
+        setRecords(data);
+      } catch (err) {
+        console.error(err);
+        setError(
+          "Unable to load employee records. Please check the backend connection."
+        );
+      } finally {
+        setLoading(false);
       }
-      const records = await response.json();
-      setRecords(records);
     }
+
     getRecords();
-    return;
-  }, [records.length]);
+  }, []);
 
-  // This method will delete a record
   async function deleteRecord(id) {
-    await fetch(`/record/${id}`, {
-      method: "DELETE",
-    });
-    const newRecords = records.filter((el) => el._id !== id);
-    setRecords(newRecords);
-  }
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this employee?"
+    );
 
-  // This method will map out the records on the table
-  function recordList() {
-    return records.map((record) => {
-      return (
-        <Record
-          record={record}
-          deleteRecord={() => deleteRecord(record._id)}
-          key={record._id}
-        />
+    if (!confirmed) return;
+
+    try {
+      const response = await fetch(`/record/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Delete request failed");
+      }
+
+      setRecords((current) =>
+        current.filter((employee) => employee._id !== id)
       );
-    });
+    } catch (err) {
+      console.error(err);
+      alert("Unable to delete the employee. Please try again.");
+    }
   }
 
-  // This following section will display the table with the records of individuals.
+  const stats = useMemo(() => {
+    return {
+      total: records.length,
+      interns: records.filter(
+        (record) => displayLevel(record.level) === "Intern"
+      ).length,
+      juniors: records.filter(
+        (record) => displayLevel(record.level) === "Junior"
+      ).length,
+      seniors: records.filter(
+        (record) => displayLevel(record.level) === "Senior"
+      ).length,
+    };
+  }, [records]);
+
+  const filteredRecords = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
+    return records.filter((record) => {
+      const matchesSearch =
+        !query ||
+        record.name?.toLowerCase().includes(query) ||
+        record.position?.toLowerCase().includes(query);
+
+      const matchesLevel =
+        levelFilter === "All" ||
+        displayLevel(record.level) === levelFilter;
+
+      return matchesSearch && matchesLevel;
+    });
+  }, [records, search, levelFilter]);
+
   return (
-    <>
-      <h3 className="text-lg font-semibold p-4">Employee Records</h3>
-      <div className="border rounded-lg overflow-hidden">
-        <div className="relative w-full overflow-auto">
-          <table className="w-full caption-bottom text-sm">
-            <thead className="[&amp;_tr]:border-b">
-              <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&amp;:has([role=checkbox])]:pr-0">
-                  Name
-                </th>
-                <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&amp;:has([role=checkbox])]:pr-0">
-                  Position
-                </th>
-                <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&amp;:has([role=checkbox])]:pr-0">
-                  Level
-                </th>
-                <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&amp;:has([role=checkbox])]:pr-0">
-                  Action
-                </th>
-              </tr>
-            </thead>
-            <tbody className="[&amp;_tr:last-child]:border-0">
-              {recordList()}
-            </tbody>
-          </table>
+    <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      {/* Page heading */}
+      <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+        <div>
+          <p className="text-sm font-semibold text-slate-500">
+            Employee Management
+          </p>
+
+          <h2 className="mt-1 text-3xl font-bold tracking-tight text-slate-950">
+            Employee Dashboard
+          </h2>
+
+          <p className="mt-2 text-sm text-slate-500">
+            Manage employee records from one place.
+          </p>
         </div>
+
+        <Link
+          to="/create"
+          className="inline-flex h-11 items-center justify-center rounded-xl bg-slate-900 px-5 text-sm font-semibold text-white transition hover:bg-slate-700"
+        >
+          + Add Employee
+        </Link>
       </div>
-    </>
+
+      {/* Stats */}
+      <div className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          title="Total Employees"
+          value={stats.total}
+          description="All employee records"
+          icon="👥"
+        />
+
+        <StatCard
+          title="Interns"
+          value={stats.interns}
+          description="Early-career employees"
+          icon="🎓"
+        />
+
+        <StatCard
+          title="Junior"
+          value={stats.juniors}
+          description="Junior-level employees"
+          icon="💼"
+        />
+
+        <StatCard
+          title="Senior"
+          value={stats.seniors}
+          description="Senior-level employees"
+          icon="⭐"
+        />
+      </div>
+
+      {/* Main directory card */}
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-200 p-5 sm:p-6">
+          <div className="mb-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+            <div>
+              <h3 className="text-lg font-bold text-slate-900">
+                Employee Directory
+              </h3>
+
+              <p className="mt-1 text-sm text-slate-500">
+                {filteredRecords.length} employee
+                {filteredRecords.length === 1 ? "" : "s"} displayed
+              </p>
+            </div>
+          </div>
+
+          <SearchBar
+            search={search}
+            setSearch={setSearch}
+            levelFilter={levelFilter}
+            setLevelFilter={setLevelFilter}
+          />
+        </div>
+
+        {loading && (
+          <div className="p-12 text-center">
+            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-slate-900" />
+
+            <p className="mt-4 text-sm text-slate-500">
+              Loading employees...
+            </p>
+          </div>
+        )}
+
+        {!loading && error && (
+          <div className="m-6 rounded-xl border border-red-200 bg-red-50 p-5">
+            <p className="font-semibold text-red-800">
+              Unable to load employees
+            </p>
+
+            <p className="mt-1 text-sm text-red-600">
+              {error}
+            </p>
+          </div>
+        )}
+
+        {!loading && !error && filteredRecords.length === 0 && (
+          <EmptyState
+            filtered={records.length > 0}
+          />
+        )}
+
+        {!loading && !error && filteredRecords.length > 0 && (
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead className="bg-slate-50">
+                <tr className="text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  <th className="px-6 py-4">Employee</th>
+                  <th className="px-6 py-4">Position</th>
+                  <th className="px-6 py-4">Level</th>
+                  <th className="px-6 py-4">Actions</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {filteredRecords.map((record) => (
+                  <EmployeeRow
+                    key={record._id}
+                    record={record}
+                    deleteRecord={deleteRecord}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    </main>
   );
 }
