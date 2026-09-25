@@ -28,17 +28,28 @@ router.get("/:id", async (req, res) => {
   else res.send(result).status(200);
 });
 
+
 // This section will help you create a new record.
 router.post("/", async (req, res) => {
   try {
-    let newDocument = {
+    const newDocument = {
       name: req.body.name,
+      email: req.body.email,
       position: req.body.position,
       level: req.body.level,
+      department: req.body.department,
+      employeeType: req.body.employeeType,
+      salary: req.body.salary,
+      joiningDate: req.body.joiningDate,
+      endingDate: req.body.endingDate || null,
+      status: req.body.status,
+      location: req.body.location,
     };
-    let collection = await db.collection("records");
-    let result = await collection.insertOne(newDocument);
-    res.send(result).status(204);
+
+    const collection = await db.collection("records");
+    const result = await collection.insertOne(newDocument);
+
+    res.status(201).send(result);
   } catch (err) {
     console.error(err);
     res.status(500).send("Error adding record");
@@ -49,17 +60,27 @@ router.post("/", async (req, res) => {
 router.patch("/:id", async (req, res) => {
   try {
     const query = { _id: new ObjectId(req.params.id) };
+
     const updates = {
       $set: {
         name: req.body.name,
+        email: req.body.email,
         position: req.body.position,
         level: req.body.level,
+        department: req.body.department,
+        employeeType: req.body.employeeType,
+        salary: req.body.salary,
+        joiningDate: req.body.joiningDate,
+        endingDate: req.body.endingDate || null,
+        status: req.body.status,
+        location: req.body.location,
       },
     };
 
-    let collection = await db.collection("records");
-    let result = await collection.updateOne(query, updates);
-    res.send(result).status(200);
+    const collection = await db.collection("records");
+    const result = await collection.updateOne(query, updates);
+
+    res.status(200).send(result);
   } catch (err) {
     console.error(err);
     res.status(500).send("Error updating record");
