@@ -14,7 +14,7 @@ export default function EmptyState({ filtered }) {
       <p className="mx-auto mt-2 max-w-md text-sm text-slate-500">
         {filtered
           ? "Try changing your search or level filter."
-          : "Start building your employee ctory by adding your first employee."}
+          : "Start building your employee directory by adding your first employee."}
       </p>
 
       {!filtered && (
