@@ -25,21 +25,76 @@ function LevelBadge({ level }) {
     Senior: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
   };
 
+  const badgeStyle =
+    styles[normalized] ||
+    "bg-slate-50 text-slate-600 ring-slate-500/20";
+
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset ${
-        styles[normalized] || "bg-slate-50 text-slate-600 ring-slate-500/20"
-      }`}
+      className={
+        "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset " +
+        badgeStyle
+      }
     >
       {normalized}
     </span>
   );
 }
 
+function StatusBadge({ status }) {
+  const styles = {
+    Active: "bg-emerald-50 text-emerald-700 ring-emerald-600/20",
+    "On Leave": "bg-amber-50 text-amber-700 ring-amber-600/20",
+    Completed: "bg-blue-50 text-blue-700 ring-blue-600/20",
+    Resigned: "bg-red-50 text-red-700 ring-red-600/20",
+  };
+
+  const badgeStyle =
+    styles[status] ||
+    "bg-slate-50 text-slate-600 ring-slate-500/20";
+
+  return (
+    <span
+      className={
+        "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset " +
+        badgeStyle
+      }
+    >
+      {status || "Unknown"}
+    </span>
+  );
+}
+
+function formatSalary(salary) {
+  if (salary === null || salary === undefined || salary === "") {
+    return "—";
+  }
+
+  return "₹" + Number(salary).toLocaleString("en-IN");
+}
+
+function formatDate(date) {
+  if (!date) return "—";
+
+  const parsedDate = new Date(date + "T00:00:00");
+
+  if (Number.isNaN(parsedDate.getTime())) {
+    return date;
+  }
+
+  return parsedDate.toLocaleDateString("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
 function EmployeeRow({ record, deleteRecord }) {
   return (
     <tr className="border-b border-slate-100 transition hover:bg-slate-50/70 last:border-0">
-      <td className="px-6 py-4">
+
+      {/* Employee */}
+      <td className="whitespace-nowrap px-6 py-4">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-900 text-sm font-bold text-white">
             {record.name?.charAt(0)?.toUpperCase() || "?"}
@@ -47,28 +102,57 @@ function EmployeeRow({ record, deleteRecord }) {
 
           <div>
             <p className="font-semibold text-slate-900">
-              {record.name}
+              {record.name || "Unnamed Employee"}
             </p>
 
             <p className="text-xs text-slate-500">
-              Employee record
+              {record.email || "No email"}
             </p>
           </div>
         </div>
       </td>
 
-      <td className="px-6 py-4 text-sm text-slate-600">
-        {record.position}
+      {/* Position */}
+      <td className="whitespace-nowrap px-6 py-4">
+        <p className="text-sm font-medium text-slate-700">
+          {record.position || "—"}
+        </p>
+
+        <div className="mt-1">
+          <LevelBadge level={record.level} />
+        </div>
       </td>
 
-      <td className="px-6 py-4">
-        <LevelBadge level={record.level} />
+      {/* Department */}
+      <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-600">
+        {record.department || "—"}
       </td>
 
-      <td className="px-6 py-4">
+      {/* Employee Type */}
+      <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-600">
+        {record.employeeType || "—"}
+      </td>
+
+      {/* Salary */}
+      <td className="whitespace-nowrap px-6 py-4 text-sm font-medium text-slate-700">
+        {formatSalary(record.salary)}
+      </td>
+
+      {/* Joining Date */}
+      <td className="whitespace-nowrap px-6 py-4 text-sm text-slate-600">
+        {formatDate(record.joiningDate)}
+      </td>
+
+      {/* Status */}
+      <td className="whitespace-nowrap px-6 py-4">
+        <StatusBadge status={record.status} />
+      </td>
+
+      {/* Actions */}
+      <td className="whitespace-nowrap px-6 py-4">
         <div className="flex items-center gap-2">
           <Link
-            to={`/edit/${record._id}`}
+            to={"/edit/" + record._id}
             className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
           >
             Edit
@@ -103,13 +187,16 @@ export default function RecordList() {
         const response = await fetch("/record/");
 
         if (!response.ok) {
-          throw new Error(`Unable to load employees (${response.status})`);
+          throw new Error(
+            "Unable to load employees (" + response.status + ")"
+          );
         }
 
         const data = await response.json();
         setRecords(data);
       } catch (err) {
         console.error(err);
+
         setError(
           "Unable to load employee records. Please check the backend connection."
         );
@@ -129,7 +216,7 @@ export default function RecordList() {
     if (!confirmed) return;
 
     try {
-      const response = await fetch(`/record/${id}`, {
+      const response = await fetch("/record/" + id, {
         method: "DELETE",
       });
 
@@ -142,21 +229,30 @@ export default function RecordList() {
       );
     } catch (err) {
       console.error(err);
-      alert("Unable to delete the employee. Please try again.");
+
+      alert(
+        "Unable to delete the employee. Please try again."
+      );
     }
   }
 
   const stats = useMemo(() => {
     return {
       total: records.length,
+
       interns: records.filter(
-        (record) => displayLevel(record.level) === "Intern"
+        (record) =>
+          displayLevel(record.level) === "Intern"
       ).length,
+
       juniors: records.filter(
-        (record) => displayLevel(record.level) === "Junior"
+        (record) =>
+          displayLevel(record.level) === "Junior"
       ).length,
+
       seniors: records.filter(
-        (record) => displayLevel(record.level) === "Senior"
+        (record) =>
+          displayLevel(record.level) === "Senior"
       ).length,
     };
   }, [records]);
@@ -168,7 +264,10 @@ export default function RecordList() {
       const matchesSearch =
         !query ||
         record.name?.toLowerCase().includes(query) ||
-        record.position?.toLowerCase().includes(query);
+        record.position?.toLowerCase().includes(query) ||
+        record.department?.toLowerCase().includes(query) ||
+        record.employeeType?.toLowerCase().includes(query) ||
+        record.location?.toLowerCase().includes(query);
 
       const matchesLevel =
         levelFilter === "All" ||
@@ -180,6 +279,7 @@ export default function RecordList() {
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+
       {/* Page heading */}
       <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
@@ -206,6 +306,7 @@ export default function RecordList() {
 
       {/* Stats */}
       <div className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+
         <StatCard
           title="Total Employees"
           value={stats.total}
@@ -233,11 +334,14 @@ export default function RecordList() {
           description="Senior-level employees"
           icon="⭐"
         />
+
       </div>
 
       {/* Main directory card */}
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+
         <div className="border-b border-slate-200 p-5 sm:p-6">
+
           <div className="mb-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
             <div>
               <h3 className="text-lg font-bold text-slate-900">
@@ -257,20 +361,26 @@ export default function RecordList() {
             levelFilter={levelFilter}
             setLevelFilter={setLevelFilter}
           />
+
         </div>
 
+        {/* Loading */}
         {loading && (
           <div className="p-12 text-center">
+
             <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-slate-900" />
 
             <p className="mt-4 text-sm text-slate-500">
               Loading employees...
             </p>
+
           </div>
         )}
 
+        {/* Error */}
         {!loading && error && (
           <div className="m-6 rounded-xl border border-red-200 bg-red-50 p-5">
+
             <p className="font-semibold text-red-800">
               Unable to load employees
             </p>
@@ -278,39 +388,80 @@ export default function RecordList() {
             <p className="mt-1 text-sm text-red-600">
               {error}
             </p>
+
           </div>
         )}
 
-        {!loading && !error && filteredRecords.length === 0 && (
-          <EmptyState
-            filtered={records.length > 0}
-          />
-        )}
+        {/* Empty state */}
+        {!loading &&
+          !error &&
+          filteredRecords.length === 0 && (
+            <EmptyState
+              filtered={records.length > 0}
+            />
+          )}
 
-        {!loading && !error && filteredRecords.length > 0 && (
-          <div className="overflow-x-auto">
-            <table className="min-w-full">
-              <thead className="bg-slate-50">
-                <tr className="text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  <th className="px-6 py-4">Employee</th>
-                  <th className="px-6 py-4">Position</th>
-                  <th className="px-6 py-4">Level</th>
-                  <th className="px-6 py-4">Actions</th>
-                </tr>
-              </thead>
+        {/* Employee table */}
+        {!loading &&
+          !error &&
+          filteredRecords.length > 0 && (
+            <div className="overflow-x-auto">
 
-              <tbody>
-                {filteredRecords.map((record) => (
-                  <EmployeeRow
-                    key={record._id}
-                    record={record}
-                    deleteRecord={deleteRecord}
-                  />
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+              <table className="min-w-full">
+
+                <thead className="bg-slate-50">
+                  <tr className="text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
+
+                    <th className="px-6 py-4">
+                      Employee
+                    </th>
+
+                    <th className="px-6 py-4">
+                      Position
+                    </th>
+
+                    <th className="px-6 py-4">
+                      Department
+                    </th>
+
+                    <th className="px-6 py-4">
+                      Type
+                    </th>
+
+                    <th className="px-6 py-4">
+                      Salary
+                    </th>
+
+                    <th className="px-6 py-4">
+                      Joining Date
+                    </th>
+
+                    <th className="px-6 py-4">
+                      Status
+                    </th>
+
+                    <th className="px-6 py-4">
+                      Actions
+                    </th>
+
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {filteredRecords.map((record) => (
+                    <EmployeeRow
+                      key={record._id}
+                      record={record}
+                      deleteRecord={deleteRecord}
+                    />
+                  ))}
+                </tbody>
+
+              </table>
+
+            </div>
+          )}
+
       </section>
     </main>
   );
