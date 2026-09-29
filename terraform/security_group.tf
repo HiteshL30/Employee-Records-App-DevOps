@@ -1,7 +1,7 @@
 resource "aws_security_group" "employee_records_sg" {
   name        = "employee-records-sg"
   description = "Security group for Employee Records Jenkins and application EC2"
-  vpc_id      = "vpc-0501944a2f26914e9"
+  vpc_id      = var.ec2_vpc_id
 
   # SSH - only from my current public IP
   ingress {
