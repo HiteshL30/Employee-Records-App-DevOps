@@ -8,3 +8,10 @@ config.env
 # Keep example configuration files
 !.env.example
 !config.env.example
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
