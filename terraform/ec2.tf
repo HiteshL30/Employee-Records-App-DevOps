@@ -7,6 +7,8 @@ resource "aws_instance" "employee_records" {
 
   associate_public_ip_address = true
 
+  user_data_replace_on_change = true
+
   vpc_security_group_ids = [
     aws_security_group.employee_records_sg.id
   ]
