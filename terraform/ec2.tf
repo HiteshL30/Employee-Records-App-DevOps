@@ -4,6 +4,7 @@ resource "aws_instance" "employee_records" {
   instance_type = var.ec2_instance_type
 
   key_name = var.ec2_key_name
+  
 
   associate_public_ip_address = true
 
@@ -12,6 +13,9 @@ resource "aws_instance" "employee_records" {
   vpc_security_group_ids = [
     aws_security_group.employee_records_sg.id
   ]
+
+  iam_instance_profile = aws_iam_instance_profile.employee_records_profile.name
+  
   user_data = file("${path.module}/scripts.sh")
 
   root_block_device {
